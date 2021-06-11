@@ -13,7 +13,7 @@ The following are designed to be solvable by all candidates.
 1) We have created a basic ERC20 contract (contracts/ERC20.sol) and a partially complete test file for it (tests/ERC20.ts) which currently only tests the `transfer` functionality. Please add more tests to this file to increase the coverage level. Some examples of functions which may need more testing are `transferFrom` and `approve`.
 2) Please create a grant funding contract which allows the account which deployed it to:
     1) Create new grants which transfer a variable amount of ERC20 tokens into the contract and store the amount and recipient with an unlock timestamp.
-    2) Allows the contract developer to remove an in progress grant.
+    2) Allows the funder to remove a grant before it unlocks for collection by the recipient. 
     3) Allows the recipient to claim a grant after the unlock timestamp and transfer the funds out of the contract.
 3) Please create a testing file and test the smart contract you wrote.
     * Hint - we have added a convenience method `increaseBlockTimestamp` which fast forwards the block timestamp for the locally deployed test ethereum network.
