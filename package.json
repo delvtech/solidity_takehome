@@ -1,29 +1,29 @@
 {
   "name": "hardhat-project",
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
-    "@typechain/hardhat": "^1.0.1",
-    "@types/chai": "^4.2.16",
-    "@types/mocha": "^8.2.2",
-    "@types/node": "^14.14.41",
-    "chai": "^4.3.4",
-    "ethereum-waffle": "^3.3.0",
-    "ethers": "^5.1.3",
-    "hardhat": "^2.2.1",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@typechain/hardhat": "^6.1.2",
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.0.0",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.9",
+    "hardhat": "^2.9.9",
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.4"
   },
   "scripts": {
     "build": "npx hardhat compile",
     "test": "npx hardhat compile && npx hardhat test ./test/*.ts"
   },
   "dependencies": {
-    "@typechain/ethers-v5": "^6.0.5",
-    "@typechain/truffle-v5": "^4.0.1",
-    "@typechain/web3-v1": "^2.2.0",
-    "hardhat-typechain": "^0.3.5",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/truffle-v5": "^8.0.1",
+    "@typechain/web3-v1": "^6.0.1",
+    "@typechain/hardhat": "^6.1.2",
     "ts-generator": "^0.1.1",
-    "typechain": "^4.0.3"
+    "typechain": "^8.1.0"
   }
 }

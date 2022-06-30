@@ -1,5 +1,5 @@
 import "@nomiclabs/hardhat-waffle";
-import "hardhat-typechain";
+import "@typechain/hardhat";
 
 import { HardhatUserConfig } from "hardhat/config";
 
@@ -16,9 +16,9 @@ const config: HardhatUserConfig = {
           },
         },
       },
-    ]
+    ],
   },
-  mocha: { timeout: 0 }
+  mocha: { timeout: 0 },
 };
 
 export default config;
