@@ -1,5 +1,5 @@
 import "@nomiclabs/hardhat-waffle";
-import "hardhat-typechain";
+import "@typechain/hardhat";
 
 import { HardhatUserConfig } from "hardhat/config";
 
