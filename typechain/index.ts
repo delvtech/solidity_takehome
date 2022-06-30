@@ -2,7 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { ERC20 } from "./ERC20";
+export type { GrantFunding } from "./GrantFunding";
 export type { Market } from "./Market";
 
 export { ERC20__factory } from "./factories/ERC20__factory";
+export { GrantFunding__factory } from "./factories/GrantFunding__factory";
 export { Market__factory } from "./factories/Market__factory";
