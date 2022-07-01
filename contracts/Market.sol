@@ -5,16 +5,19 @@ import "./ERC20.sol";
 // This yield farm accepts token deposits for integrators
 // and takes a small fee which is claimable from farming profits
 contract Market is ERC20 {
-
     address owner;
     mapping(address => bool) poolRegistration;
     mapping(bytes32 => bool) usedSignatures;
 
-    constructor () ERC20("Market token", "MT") {
+    constructor() ERC20("Market token", "MT") {
         owner = msg.sender;
     }
 
-    function deposit(address pool, address token, uint256 amount) external payable {
+    function deposit(
+        address pool,
+        address token,
+        uint256 amount
+    ) external payable {
         // Only registered safe pools
         require(poolRegistration[pool]);
         require(msg.value == 0.1 ether);
@@ -23,31 +26,63 @@ contract Market is ERC20 {
         // Transfer the tokens to this contract
         ERC20(token).transferFrom(msg.sender, address(this), amount);
         // Call the fund management contract to enact the strategy
-        (bool success, ) = pool.delegatecall(abi.encodeWithSignature(
-            "tokenDeposit(address, address, uint256)", 
-            msg.sender,
-            token,
-            amount));
+        (bool success, ) = pool.delegatecall(
+            abi.encodeWithSignature(
+                "tokenDeposit(address, address, uint256)",
+                msg.sender,
+                token,
+                amount
+            )
+        );
         require(success, "deposit fail");
     }
 
-    function withdraw(uint256 lpTokens, address pool, address token, uint256 amount) external {
+    function withdraw(
+        uint256 lpTokens,
+        address pool,
+        address token,
+        uint256 amount
+    ) external {
         // We call the pool to collect profits for us
-        (bool success, ) = pool.delegatecall(abi.encodeWithSignature(
-            "withdraw(address, address)", msg.sender, token));
+        (bool success, ) = pool.delegatecall(
+            abi.encodeWithSignature(
+                "withdraw(address, address)",
+                msg.sender,
+                token
+            )
+        );
         require(success, "withdraw failed");
+        // we should burn first
+        // then transfer
+        // right now it seems like DAO hack
         ERC20(token).transfer(msg.sender, amount);
         // Transfer them the contract excess value
-        uint256 distributable = address(this).balance - (totalSupply*0.1 ether)/1e18;
-        uint256 userShare = (distributable*lpTokens)/totalSupply;
+        uint256 distributable = address(this).balance -
+            (totalSupply * 0.1 ether) /
+            1e18;
+        uint256 userShare = (distributable * lpTokens) / totalSupply;
         // Burn the LP tokens
         _burn(msg.sender, lpTokens);
         payable(msg.sender).transfer(userShare);
     }
 
     // This extends our erc20 to allow signed lp token transfers
-    function signedTransfer(address src, address dest, uint256 amount, bytes32 extraData, bytes32 r, bytes32 s, uint8 v) external {
-        bytes32 sigHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", uint256(32), keccak256(abi.encodePacked(src, dest, amount, extraData))));
+    function signedTransfer(
+        address src,
+        address dest,
+        uint256 amount,
+        bytes32 extraData,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
+    ) external {
+        bytes32 sigHash = keccak256(
+            abi.encodePacked(
+                "\x19Ethereum Signed Message:\n",
+                uint256(32),
+                keccak256(abi.encodePacked(src, dest, amount, extraData))
+            )
+        );
         require(src == ecrecover(sigHash, v, r, s), "invalid sig");
         require(!usedSignatures[sigHash], "replayed");
         balanceOf[src] -= amount;
@@ -56,12 +91,14 @@ contract Market is ERC20 {
 
     // Prevents anyone who is not the owner and contracts from
     // calling this contract
-    modifier onlyOwner(){
+    modifier onlyOwner() {
+        // do not rely on tx.origin, as Vitalik states (https://ethereum.stackexchange.com/questions/196/how-do-i-make-my-dapp-serenity-proof)
         require(msg.sender == owner || msg.sender != tx.origin);
         _;
     }
 
-    function registerPool(address pool) external onlyOwner() {
+    // why we call onlyOwner here like a function?
+    function registerPool(address pool) external onlyOwner {
         // We want to scan pool's code for self destruct to ensure the
         // contract can't be destroyed
         bytes memory o_code;
@@ -74,7 +111,10 @@ contract Market is ERC20 {
             // by using o_code = new bytes(size)
             o_code := mload(0x40)
             // new "memory end" including padding
-            mstore(0x40, add(o_code, and(add(add(size, 0x20), 0x1f), not(0x1f))))
+            mstore(
+                0x40,
+                add(o_code, and(add(add(size, 0x20), 0x1f), not(0x1f)))
+            )
             // store length in memory
             mstore(o_code, size)
             // actually retrieve the code, this needs assembly
@@ -83,19 +123,20 @@ contract Market is ERC20 {
 
         require(size != 0, "un-deployed contract");
 
-        for (uint256 i; i < o_code.length; i ++) {
+        for (uint256 i; i < o_code.length; i++) {
             uint8 opcode = uint8(o_code[i]);
             require(
                 // self destruct
                 opcode != 0xff,
-
-            "Forbidden code");
+                "Forbidden code"
+            );
         }
 
         poolRegistration[pool] = true;
     }
 
-    function claimProfits() onlyOwner external {
+    function claimProfits() external onlyOwner {
+        // use payable(owner)
         payable(msg.sender).transfer(address(this).balance);
     }
 }
