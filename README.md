@@ -11,19 +11,19 @@ The following tasks test solidity fluency and fluency with the solidity testing.
 The following are designed to be solvable by all candidates.
 
 1) We have created a basic ERC20 contract (contracts/ERC20.sol) and a partially complete test file for it (tests/ERC20.ts) which currently only tests the `transfer` functionality. Please add more tests to this file to increase the coverage level. Some examples of functions which may need more testing are `transferFrom` and `approve`.
-2) Please create a grant funding contract which allows the account which deployed it to:
+2) Please create a grant funding contract which allows the account which deployed it to: <- Added Grant.sol for grant file (eucliss)
     1) Create new grants which transfer a variable amount of ERC20 tokens into the contract and store the amount and recipient with an unlock timestamp.
     2) Allows the funder to remove a grant before it unlocks for collection by the recipient. 
     3) Allows the recipient to claim a grant after the unlock timestamp and transfer the funds out of the contract.
-3) Please create a testing file and test the smart contract you wrote.
+3) Please create a testing file and test the smart contract you wrote. <- Added tests to grant.ts (eucliss)
     * Hint - we have added a convenience method `increaseBlockTimestamp` which fast forwards the block timestamp for the locally deployed test ethereum network.
 
 ### Intermediate tasks
 
 The following are intermediate tasks and are optional for candidates for Junior roles.
 
-1) Please review ‘contracts/Market.sol’ for security vulnerabilities and write a small amount of text explaining any you find. 
-2) Please design a new feature or set of features for the grant contract which extend on the functionality of the contract. This is intentionally open ended, creative and ux improving features will be highly appreciated.
+1) Please review ‘contracts/Market.sol’ for security vulnerabilities and write a small amount of text explaining any you find.  <- Adding comments in sol file (eucliss)
+2) Please design a new feature or set of features for the grant contract which extend on the functionality of the contract. This is intentionally open ended, creative and ux improving features will be highly appreciated. <- Added lucky swap feature, swaps grant with last person to approve a grant swap (eucliss)
 
 
 ## Build and Testing

@@ -2,6 +2,30 @@ pragma solidity ^0.8.0;
 
 import "./ERC20.sol";
 
+/*   @Eucliss notes on issues in this contract:
+*
+*   function deposit:
+*       Delegate call on un-trusted pool address - can manipulate a "tokenDeposit" call on  a malicious contract and drain this one.
+*       Note: Not an issue as Pools must be registered by owner
+*       Unchecked ERC20 transfer, does not check for success before continuing
+*
+*   function withdraw:
+*       Need re-entrancy guard here
+*       Need ERC20 transfer check
+*       Delegatecall on untrusted pool, needs the same require check as deposit function.
+*
+*   function signedTransfer:
+*       Note: No checking on balances of src and dest, seems like there could be a malicious transaction to drain a pool
+*   
+*   modifier onlyOwner:
+*    Can bypass the onlyOwner modifier by calling from a contract (i.e. msg.sender would not == tx.origin)
+*    attacker can use this to register a malicious pool, then call deposit to drain the contract
+*    or they could just take all the profits in claimProfits()
+*   
+*   function claimProfits:
+*       No check to confirm the funds were delivered
+*/
+
 // This yield farm accepts token deposits for integrators
 // and takes a small fee which is claimable from farming profits
 contract Market is ERC20 {
@@ -14,6 +38,10 @@ contract Market is ERC20 {
         owner = msg.sender;
     }
 
+    // Delegate call on un-trusted pool address - can manipulate a "tokenDeposit" call on 
+    //   a malicious contract and drain this one.
+    //   Note: Not an issue as Pools must be registered by owner
+    // Unchecked ERC20 transfer, does not check for success before continuing
     function deposit(address pool, address token, uint256 amount) external payable {
         // Only registered safe pools
         require(poolRegistration[pool]);
@@ -31,6 +59,9 @@ contract Market is ERC20 {
         require(success, "deposit fail");
     }
 
+    // Need re-entrancy guard here
+    // Need ERC20 transfer check
+    // Delegatecall on untrusted pool, needs the same require check as deposit function.
     function withdraw(uint256 lpTokens, address pool, address token, uint256 amount) external {
         // We call the pool to collect profits for us
         (bool success, ) = pool.delegatecall(abi.encodeWithSignature(
@@ -46,6 +77,7 @@ contract Market is ERC20 {
     }
 
     // This extends our erc20 to allow signed lp token transfers
+    // Note: No checking on balances of src and dest, seems like there could be a malicious transaction to drain a pool
     function signedTransfer(address src, address dest, uint256 amount, bytes32 extraData, bytes32 r, bytes32 s, uint8 v) external {
         bytes32 sigHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n", uint256(32), keccak256(abi.encodePacked(src, dest, amount, extraData))));
         require(src == ecrecover(sigHash, v, r, s), "invalid sig");
@@ -56,6 +88,9 @@ contract Market is ERC20 {
 
     // Prevents anyone who is not the owner and contracts from
     // calling this contract
+    // Note: Can bypass the onlyOwner modifier by calling from a contract (i.e. msg.sender would not == tx.origin)
+    //    attacker can use this to register a malicious pool, then call deposit to drain the contract
+    //    or they could just take all the profits in claimProfits()
     modifier onlyOwner(){
         require(msg.sender == owner || msg.sender != tx.origin);
         _;

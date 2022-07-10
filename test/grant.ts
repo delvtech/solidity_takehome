@@ -133,7 +133,7 @@ describe("grant", function () {
     await expect(tx).to.be.revertedWith("GrantRevokeWindowMissed");
   });
 
-    /*
+  /*
    *   Claims a grant
    */
 
@@ -173,6 +173,74 @@ describe("grant", function () {
       const tx = grant.connect(reciever).claim();  
       await expect(tx).to.be.revertedWith("GrantRevokedOrClaimed");
     });
+
+  /*
+   *   Lucky Swap
+   */
+
+  it("Adds a grant to lucky swap", async () => {
+    let recipient = signers[3];
+    let tomorrow = new Date(); // now
+    tomorrow.setDate(tomorrow.getDate() + 1); // add 1 day
+    const unlockTime = Math.floor(tomorrow.getTime() / 1000); // divide for unix timestamp
+    await grant.deposit(token.address, unlockTime, recipient.address, ethers.utils.parseEther("1"))
+
+    expect(await grant.connect(recipient).checkGrantAmount()).to.be.eq(
+      ethers.utils.parseEther("1")
+    );
+   
+    const tx = await grant.connect(recipient).addToLuckySwap();
+    const receipt = await tx.wait();
+  
+      let events = receipt.events?.filter((x) => {return x.event == "GrantAddedToSwap"})
+      if(events){
+        expect(events[0].event).to.be.eq(
+          'GrantAddedToSwap'
+        );
+      } else {
+        throw "ERROR: Grant not added to swap, event not defined";
+      }
+  });
+
+  it("Swaps grants around for swappers", async () => {
+    let recipient = signers[4];
+    let swapTarget = signers[3];
+
+    let tomorrow = new Date(); // now
+    tomorrow.setDate(tomorrow.getDate() + 1); // add 1 day
+    const unlockTime = Math.floor(tomorrow.getTime() / 1000); // divide for unix timestamp
+    await grant.deposit(token.address, unlockTime, recipient.address, ethers.utils.parseEther("5"))
+
+    expect(await grant.connect(recipient).checkGrantAmount()).to.be.eq(
+      ethers.utils.parseEther("5")
+    );
+    expect(await grant.connect(swapTarget).checkGrantAmount()).to.be.eq(
+      ethers.utils.parseEther("1")
+    );
+   
+    const tx = await grant.connect(recipient).ImFeelingLucky();
+    const receipt = await tx.wait();
+  
+    let events = receipt.events?.filter((x) => {return x.event == "SwapOccured"})
+    if(events){
+      expect(events[0].event).to.be.eq(
+        'SwapOccured'
+      );
+    } else {
+      throw "ERROR: Grant not added to swap, event not defined";
+    }
+
+    // Recipient now has 1 ERC20, swapTarget has 5. Not his lucky day
+    expect(await grant.connect(recipient).checkGrantAmount()).to.be.eq(
+      ethers.utils.parseEther("1")
+    );
+    expect(await grant.connect(swapTarget).checkGrantAmount()).to.be.eq(
+      ethers.utils.parseEther("5")
+    );
+
+  });
+
+   
 
     
 

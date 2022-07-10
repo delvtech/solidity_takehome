@@ -142,6 +142,8 @@ contract ERC20 {
         
         returns (bool)
     {
+        // NOTE: Doesnt check for how much the msg.sender has, could approve infinite
+        //   ultimately will not work, but interesting
         // Set the senders allowance for account to amount
         allowance[msg.sender][account] = amount;
         // Emit an event to track approvals

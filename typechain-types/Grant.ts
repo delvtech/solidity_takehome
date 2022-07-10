@@ -33,23 +33,28 @@ export declare namespace Grant {
     unlockTime: PromiseOrValue<BigNumberish>;
     claimedOrRevoked: PromiseOrValue<boolean>;
     amount: PromiseOrValue<BigNumberish>;
+    inSwap: PromiseOrValue<boolean>;
   };
 
   export type GrantStructStructOutput = [
     string,
     BigNumber,
     boolean,
-    BigNumber
+    BigNumber,
+    boolean
   ] & {
     token: string;
     unlockTime: BigNumber;
     claimedOrRevoked: boolean;
     amount: BigNumber;
+    inSwap: boolean;
   };
 }
 
 export interface GrantInterface extends utils.Interface {
   functions: {
+    "ImFeelingLucky()": FunctionFragment;
+    "addToLuckySwap()": FunctionFragment;
     "checkGrantAmount()": FunctionFragment;
     "checkGrantClaimedOrRevoked()": FunctionFragment;
     "checkGrantUnlockTime()": FunctionFragment;
@@ -57,10 +62,13 @@ export interface GrantInterface extends utils.Interface {
     "deposit(address,uint256,address,uint256)": FunctionFragment;
     "grants(address)": FunctionFragment;
     "revoke(address)": FunctionFragment;
+    "swapsLen()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "ImFeelingLucky"
+      | "addToLuckySwap"
       | "checkGrantAmount"
       | "checkGrantClaimedOrRevoked"
       | "checkGrantUnlockTime"
@@ -68,8 +76,17 @@ export interface GrantInterface extends utils.Interface {
       | "deposit"
       | "grants"
       | "revoke"
+      | "swapsLen"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "ImFeelingLucky",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addToLuckySwap",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "checkGrantAmount",
     values?: undefined
@@ -100,7 +117,16 @@ export interface GrantInterface extends utils.Interface {
     functionFragment: "revoke",
     values: [PromiseOrValue<string>]
   ): string;
+  encodeFunctionData(functionFragment: "swapsLen", values?: undefined): string;
 
+  decodeFunctionResult(
+    functionFragment: "ImFeelingLucky",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addToLuckySwap",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "checkGrantAmount",
     data: BytesLike
@@ -117,17 +143,33 @@ export interface GrantInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "grants", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "revoke", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "swapsLen", data: BytesLike): Result;
 
   events: {
+    "GrantAddedToSwap(address)": EventFragment;
     "GrantClaimed(tuple)": EventFragment;
     "GrantDeposited(address,address,uint256,uint256)": EventFragment;
     "GrantRevoked(tuple)": EventFragment;
+    "SwapOccured(tuple,tuple)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "GrantAddedToSwap"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "GrantClaimed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "GrantDeposited"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "GrantRevoked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SwapOccured"): EventFragment;
 }
+
+export interface GrantAddedToSwapEventObject {
+  recipient: string;
+}
+export type GrantAddedToSwapEvent = TypedEvent<
+  [string],
+  GrantAddedToSwapEventObject
+>;
+
+export type GrantAddedToSwapEventFilter =
+  TypedEventFilter<GrantAddedToSwapEvent>;
 
 export interface GrantClaimedEventObject {
   grant: Grant.GrantStructStructOutput;
@@ -162,6 +204,17 @@ export type GrantRevokedEvent = TypedEvent<
 
 export type GrantRevokedEventFilter = TypedEventFilter<GrantRevokedEvent>;
 
+export interface SwapOccuredEventObject {
+  swapper: Grant.GrantStructStructOutput;
+  reciever: Grant.GrantStructStructOutput;
+}
+export type SwapOccuredEvent = TypedEvent<
+  [Grant.GrantStructStructOutput, Grant.GrantStructStructOutput],
+  SwapOccuredEventObject
+>;
+
+export type SwapOccuredEventFilter = TypedEventFilter<SwapOccuredEvent>;
+
 export interface Grant extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
@@ -189,6 +242,14 @@ export interface Grant extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    ImFeelingLucky(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    addToLuckySwap(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     checkGrantAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     checkGrantClaimedOrRevoked(overrides?: CallOverrides): Promise<[boolean]>;
@@ -211,11 +272,12 @@ export interface Grant extends BaseContract {
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, boolean, BigNumber] & {
+      [string, BigNumber, boolean, BigNumber, boolean] & {
         token: string;
         unlockTime: BigNumber;
         claimedOrRevoked: boolean;
         amount: BigNumber;
+        inSwap: boolean;
       }
     >;
 
@@ -223,7 +285,17 @@ export interface Grant extends BaseContract {
       recipient: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    swapsLen(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
+
+  ImFeelingLucky(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addToLuckySwap(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   checkGrantAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -247,11 +319,12 @@ export interface Grant extends BaseContract {
     arg0: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, boolean, BigNumber] & {
+    [string, BigNumber, boolean, BigNumber, boolean] & {
       token: string;
       unlockTime: BigNumber;
       claimedOrRevoked: boolean;
       amount: BigNumber;
+      inSwap: boolean;
     }
   >;
 
@@ -260,7 +333,13 @@ export interface Grant extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  swapsLen(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
+    ImFeelingLucky(overrides?: CallOverrides): Promise<void>;
+
+    addToLuckySwap(overrides?: CallOverrides): Promise<void>;
+
     checkGrantAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
     checkGrantClaimedOrRevoked(overrides?: CallOverrides): Promise<boolean>;
@@ -281,11 +360,12 @@ export interface Grant extends BaseContract {
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, boolean, BigNumber] & {
+      [string, BigNumber, boolean, BigNumber, boolean] & {
         token: string;
         unlockTime: BigNumber;
         claimedOrRevoked: boolean;
         amount: BigNumber;
+        inSwap: boolean;
       }
     >;
 
@@ -293,9 +373,14 @@ export interface Grant extends BaseContract {
       recipient: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    swapsLen(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
+    "GrantAddedToSwap(address)"(recipient?: null): GrantAddedToSwapEventFilter;
+    GrantAddedToSwap(recipient?: null): GrantAddedToSwapEventFilter;
+
     "GrantClaimed(tuple)"(grant?: null): GrantClaimedEventFilter;
     GrantClaimed(grant?: null): GrantClaimedEventFilter;
 
@@ -314,9 +399,23 @@ export interface Grant extends BaseContract {
 
     "GrantRevoked(tuple)"(grant?: null): GrantRevokedEventFilter;
     GrantRevoked(grant?: null): GrantRevokedEventFilter;
+
+    "SwapOccured(tuple,tuple)"(
+      swapper?: null,
+      reciever?: null
+    ): SwapOccuredEventFilter;
+    SwapOccured(swapper?: null, reciever?: null): SwapOccuredEventFilter;
   };
 
   estimateGas: {
+    ImFeelingLucky(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addToLuckySwap(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     checkGrantAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
     checkGrantClaimedOrRevoked(overrides?: CallOverrides): Promise<BigNumber>;
@@ -344,9 +443,19 @@ export interface Grant extends BaseContract {
       recipient: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
+
+    swapsLen(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    ImFeelingLucky(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addToLuckySwap(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     checkGrantAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     checkGrantClaimedOrRevoked(
@@ -378,5 +487,7 @@ export interface Grant extends BaseContract {
       recipient: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
+
+    swapsLen(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }
